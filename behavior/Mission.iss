@@ -55,7 +55,9 @@ objectdef obj_Mission inherits obj_StateQueue
 	variable string ammo
 	variable string secondaryAmmo
 	variable string missionLootContainer
-	variable string missionItemRequired
+	variable string missionItemRequired	
+	variable string currentMissionGateKey
+	variable string currentMissionGateKeyContainer
 	variable int useDroneRace = 0
 
 	; If a target can't be killed within 2 minutes, something is going wrong.
@@ -68,6 +70,10 @@ objectdef obj_Mission inherits obj_StateQueue
 	variable collection:string ItemsRequired
 	variable collection:float64 CapacityRequired
 	variable set InvalidMissions
+	; (Optional) Bring key to mission when available
+	variable collection:string MissionGateKeys
+	; Look for mission key in cargo if didn't bring
+	variable collection:string MissionGateKeyContainers
 
 	variable bool reload = TRUE
 	variable bool isLoadingFallbackDrones
@@ -119,6 +125,8 @@ objectdef obj_Mission inherits obj_StateQueue
 		ItemsRequired:Clear
 		InvalidMissions:Clear
 		AttackTarget:Clear
+		MissionGateKeys:Clear
+		MissionGateKeyContainers:Clear
 
 		if !${Config.MissionFile.NotNULLOrEmpty}
 		{
@@ -338,6 +346,20 @@ objectdef obj_Mission inherits obj_StateQueue
 									missionItemRequired:Set[${ItemsRequired.Element[${ValidMissions.CurrentKey}]}]
 								}
 
+								currentMissionGateKey:Set[""]
+								if ${MissionGateKeys.Element[${ValidMissions.CurrentKey}](exists)}
+								{
+									UI:Update["Mission", "Bring gate key if available: \ao${MissionGateKeys.Element[${ValidMissions.CurrentKey}]}", "g"]
+									currentMissionGateKey:Set[${MissionGateKeys.Element[${ValidMissions.CurrentKey}]}]
+								}
+
+								currentMissionGateKeyContainer:Set[""]
+								if ${MissionGateKeyContainers.Element[${ValidMissions.CurrentKey}](exists)}
+								{
+									UI:Update["Mission", "Look for the gate key in: \ao${MissionGateKeyContainers.Element[${ValidMissions.CurrentKey}]}", "g"]
+									currentMissionGateKeyContainer:Set[${MissionGateKeyContainers.Element[${ValidMissions.CurrentKey}]}]
+								}
+
 								switch ${ValidMissions.CurrentValue.Lower}
 								{
 									case kinetic
@@ -402,6 +424,7 @@ objectdef obj_Mission inherits obj_StateQueue
 						This:InsertState["CheckForWork"]
 						isLoadingFallbackDrones:Set[FALSE]
 						This:InsertState["ReloadAmmoAndDrones"]
+						This:InsertState["TryBringGateKey"]
 						This:InsertState["PrepHangars"]
 						return TRUE
 					}
@@ -1453,6 +1476,90 @@ objectdef obj_Mission inherits obj_StateQueue
 		}
 
 		This:InsertState["StackHangars"]
+		return TRUE
+	}
+
+	member:bool TryBringGateKey()
+	{
+		if !${currentMissionGateKey.NotNULLOrEmpty}
+		{
+			return TRUE
+		}
+
+		if (!${EVEWindow[Inventory](exists)})
+		{
+			EVE:Execute[OpenInventory]
+			return FALSE
+		}
+
+		variable index:item items
+		variable iterator itemIterator
+
+		if !${EVEWindow[Inventory].ChildWindow[${Me.ShipID}, ShipCargo](exists)} || ${EVEWindow[Inventory].ChildWindow[${Me.ShipID}, ShipCargo].Capacity} < 0
+		{
+			EVEWindow[Inventory].ChildWindow[${Me.ShipID}, ShipCargo]:MakeActive
+			return FALSE
+		}
+
+		EVEWindow[Inventory].ChildWindow[${Me.ShipID}, ShipCargo]:GetItems[items]
+		items:GetIterator[itemIterator]
+		if ${itemIterator:First(exists)}
+		{
+			do
+			{
+				; Already in cargo
+				if ${itemIterator.Value.Name.Equal[${currentMissionGateKey}]}
+				{
+					UI:Update["Mission", "Confirmed that the gate key \"${currentMissionGateKey}\" is already in cargo."]
+					return TRUE
+				}
+			}
+			while ${itemIterator:Next(exists)}
+		}
+
+		; Try loading from hangar
+		if ${Config.DropoffType.Equal[Corporation Hangar]}
+		{
+			if !${EVEWindow[Inventory].ChildWindow[StationCorpHangar](exists)}
+			{
+				EVEWindow[Inventory].ChildWindow[StationCorpHangars]:MakeActive
+				return FALSE
+			}
+
+			if !${EVEWindow[Inventory].ChildWindow["StationCorpHangar", ${Config.DropoffSubType}](exists)}
+			{
+				EVEWindow[Inventory].ChildWindow["StationCorpHangar", ${Config.DropoffSubType}]:MakeActive
+				return FALSE
+			}
+
+			EVEWindow[Inventory].ChildWindow["StationCorpHangar", ${Config.DropoffSubType}]:GetItems[items]
+		}
+		else
+		{
+			if !${EVEWindow[Inventory].ChildWindow[${Me.Station.ID}, StationItems](exists)}
+			{
+				EVEWindow[Inventory].ChildWindow[${Me.Station.ID}, StationItems]:MakeActive
+				return FALSE
+			}
+
+			EVEWindow[Inventory].ChildWindow[${Me.Station.ID}, StationItems]:GetItems[items]
+		}
+
+		items:GetIterator[itemIterator]
+		if ${itemIterator:First(exists)}
+		{
+			do
+			{
+				if ${itemIterator.Value.Name.Equal[${currentMissionGateKey}]}
+				{
+					UI:Update["Mission", "Moving the gate key \"${currentMissionGateKey}\" to cargo."]
+					itemIterator.Value:MoveTo[${MyShip.ID}, CargoHold, 1]
+					return FALSE
+				}
+			}
+			while ${itemIterator:Next(exists)}
+		}
+
 		return TRUE
 	}
 
