@@ -117,7 +117,7 @@ objectdef obj_TargetList inherits obj_StateQueue
 
 	method AddAllNPCs()
 	{
-		variable string QueryString="CategoryID = CATEGORYID_ENTITY && IsNPC && !IsMoribund && !("
+		variable string QueryString="CategoryID = CATEGORYID_ENTITY && IsNPC && !IsMoribund && !IsMassive && !("
 
 		;Exclude Groups here
 		QueryString:Concat["GroupID = GROUP_CONCORDDRONE ||"]
@@ -128,7 +128,10 @@ objectdef obj_TargetList inherits obj_StateQueue
 		QueryString:Concat["GroupID = GROUP_SPAWNCONTAINER ||"]
 		QueryString:Concat["GroupID = CATEGORYID_ORE ||"]
 		QueryString:Concat["GroupID = GROUP_DEADSPACEOVERSEERSSTRUCTURE ||"]
-		QueryString:Concat["GroupID = GROUP_LARGECOLLIDABLESTRUCTURE)"]
+		QueryString:Concat["GroupID = GROUP_LARGECOLLIDABLESTRUCTURE ||"]
+		; Somehow the non hostile Orca and Drone ship in the Anomaly mission is in this group
+		QueryString:Concat["GroupID = GROUP_ANCIENTSHIPSTRUCTURE ||"]
+		QueryString:Concat["GroupID = GROUP_PRESSURESOLO)"]
 
 		This:AddQueryString["${QueryString.Escape}"]
 	}
