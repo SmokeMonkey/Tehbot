@@ -363,15 +363,14 @@ objectdef obj_ModuleBase inherits obj_StateQueue
             This:QueueState["DeactivatePercent", 50, ${DeactivatePercent}]
         }
 
-		; Need this state to catch target is destruction and reset CurrentTarget
-        This:QueueState["WaitTillInactive"]
+        This:QueueState["WaitTillInactive", 50, -1]
     }
 
 	member:bool LoadMiningCrystal(string OreType)
 	{
 		variable index:item Crystals
 		variable iterator Crystal
-		if ${OreType.Find[${MyShip.Module[${ModuleID}].Charge.Type.Token[1," "]}]}
+		if ${OreType.Find[${MyShip.Module[${ModuleID}].Charge.Type.Token[1, " "]}]}
 		{
 			return TRUE
 		}
@@ -524,7 +523,7 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 		return FALSE
 	}
 
-	member:bool WaitTillInactive(int count = -1)
+	member:bool WaitTillInactive(int count=-1)
 	{
 		if ${count} > 50
 		{
