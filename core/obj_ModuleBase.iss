@@ -202,7 +202,7 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 		}
 	}
 
-    method Activate(int64 newTarget=-1, bool DoDeactivate=TRUE, int DeactivatePercent=100)
+    method Activate(int64 newTarget=-1, int deactivateAfterCyclePercent=-1)
     {
         if ${newTarget} != ${CurrentTarget} && ${This.IsActive} && \
 		${MyShip.Module[${ModuleID}].ToItem.GroupID} != GROUP_TRACKINGCOMPUTER && \
@@ -358,9 +358,10 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 
         This:QueueState["ActivateOn", 50, "${newTarget}"]
         This:QueueState["WaitTillActive", 50, 20]
-        if ${DeactivatePercent} < 100
+
+        if ${deactivateAfterCyclePercent} != -1
         {
-            This:QueueState["DeactivatePercent", 50, ${DeactivatePercent}]
+            This:QueueState["DeactivateAfterCyclePercent", 50, ${deactivateAfterCyclePercent}]
         }
 
         This:QueueState["WaitTillInactive", 50, -1]
@@ -496,13 +497,14 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 		return TRUE
 	}
 
-	member:bool DeactivatePercent(int Percent=100)
+	member:bool DeactivateAfterCyclePercent(int percent)
 	{
-		if ${Percent} == 100
+		if ${percent} == -1
 		{
 			return TRUE
 		}
-		if ${Math.Calc[((${EVETime.AsInt64} - ${MyShip.Module[${ModuleID}].TimeLastClicked.AsInt64}) / ${MyShip.Module[${ModuleID}].ActivationTime}) * 100]} > ${Percent}
+
+		if ${Math.Calc[((${EVETime.AsInt64} - ${MyShip.Module[${ModuleID}].TimeLastClicked.AsInt64}) / ${MyShip.Module[${ModuleID}].ActivationTime}) * 100]} > ${percent}
 		{
 			MyShip.Module[${ModuleID}]:Deactivate
 			Deactivating:Set[TRUE]
