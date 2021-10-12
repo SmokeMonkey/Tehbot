@@ -695,7 +695,7 @@ objectdef obj_Mission inherits obj_StateQueue
 		ActiveNPCs:RequestUpdate
 		NPCs:RequestUpdate
 		Lootables:RequestUpdate
-		Ship.ModuleList_ActiveResists:Activate
+		Ship.ModuleList_ActiveResists:ActivateAll
 		variable index:bookmark BookmarkIndex
 
 		if ${Me.ToEntity.Mode} == 3
@@ -2215,16 +2215,15 @@ objectdef obj_Mission inherits obj_StateQueue
 			{
 				if ${Ship.ModuleList_Regen_Shield.InactiveCount} && ((${MyShip.ShieldPct} < 100 && ${MyShip.CapacitorPct} > ${AutoModule.Config.ActiveShieldCap}) || ${AutoModule.Config.ShieldBoost})
 				{
-					Ship.ModuleList_Regen_Shield:ActivateCount[${Ship.ModuleList_Regen_Shield.InactiveCount}]
+					Ship.ModuleList_Regen_Shield:ActivateAll
 				}
 				if ${Ship.ModuleList_Regen_Shield.ActiveCount} && (${MyShip.ShieldPct} == 100 || ${MyShip.CapacitorPct} < ${AutoModule.Config.ActiveShieldCap}) && !${AutoModule.Config.ShieldBoost}
 				{
 					Ship.ModuleList_Regen_Shield:DeactivateCount[${Ship.ModuleList_Regen_Shield.ActiveCount}]
 				}
-				if ${Ship.ModuleList_Repair_Armor.InactiveCount} && ((${MyShip.ArmorPct} < 100 && ${MyShip.CapacitorPct} > ${AutoModule.Config.ActiveArmorCap}) || ${AutoModule.Config.ArmorRepair}) && ${LavishScript.RunningTime} > ${lastArmorRepActivate}
+				if ${Ship.ModuleList_Repair_Armor.InactiveCount} && ((${MyShip.ArmorPct} < 100 && ${MyShip.CapacitorPct} > ${AutoModule.Config.ActiveArmorCap}) || ${AutoModule.Config.ArmorRepair})
 				{
-					Ship.ModuleList_Repair_Armor:ActivateCount[1]
-					lastArmorRepActivate:Set[${Math.Calc[${LavishScript.RunningTime} + 3000]}]
+					Ship.ModuleList_Repair_Armor:ActivateAll
 				}
 				if ${Ship.ModuleList_Repair_Armor.ActiveCount} && (${MyShip.ArmorPct} == 100 || ${MyShip.CapacitorPct} < ${AutoModule.Config.ActiveArmorCap}) && !${AutoModule.Config.ArmorRepair}
 				{
