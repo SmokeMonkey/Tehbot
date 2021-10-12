@@ -34,7 +34,7 @@ objectdef obj_InstaWarp inherits obj_StateQueue
 
 		if ${Me.ToEntity.Mode} == 3 && !${InstaWarp_Cooldown}
 		{
-			Ship.ModuleList_AB_MWD:Activate[-1, FALSE]
+			Ship.ModuleList_AB_MWD:Activate
 			InstaWarp_Cooldown:Set[TRUE]
 			return FALSE
 		}
