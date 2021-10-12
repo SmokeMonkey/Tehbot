@@ -209,7 +209,7 @@ objectdef obj_Salvage inherits obj_StateQueue
 							${Ship.ModuleList_TractorBeams.IsActiveOn[${wreckIterator.Value.ID}]} && \
 							${MyShip.ToEntity.Velocity} < 20
 						{
-							Ship.ModuleList_TractorBeams:DeactivateOn[${wreckIterator.Value.ID}]
+							Ship.ModuleList_TractorBeams:DeactivateAllOn[${wreckIterator.Value.ID}]
 						}
 
 						UI:Update["Salvage", "Activating salvager - \ap${wreckIterator.Value.Name}"]
@@ -238,7 +238,7 @@ objectdef obj_Salvage inherits obj_StateQueue
 							${MyShip.ToEntity.Velocity} < 20
 					; Within 2500
 					{
-						Ship.ModuleList_TractorBeams:DeactivateOn[${wreckIterator.Value.ID}]
+						Ship.ModuleList_TractorBeams:DeactivateAllOn[${wreckIterator.Value.ID}]
 						return FALSE
 					}
 				}

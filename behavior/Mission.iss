@@ -787,8 +787,14 @@ objectdef obj_Mission inherits obj_StateQueue
 						{
 							if ${Entity[${currentLootContainer}].IsLockedTarget} && !${Ship.ModuleList_TractorBeams.IsActiveOn[${currentLootContainer}]}
 							{
-								Ship.ModuleList_TractorBeams:Activate[${currentLootContainer}]
-								Ship.ModuleList_TractorBeams:DeactivateNotOn[${currentLootContainer}]
+								if ${Ship.ModuleList_TractorBeams.InactiveCount} > 0
+								{
+									Ship.ModuleList_TractorBeams:Activate[${currentLootContainer}]
+								}
+								else
+								{
+									Ship.ModuleList_TractorBeams:DeactivateNotOn[${currentLootContainer}]
+								}
 								This:InsertState["PerformMission"]
 								return TRUE
 							}
@@ -1076,24 +1082,24 @@ objectdef obj_Mission inherits obj_StateQueue
 			if ${Ship.ModuleList_Weapon.Range} > ${Entity[${currentTarget}].Distance} || !${Config.RangeLimit}
 			{
 				Ship.ModuleList_Weapon:ActivateAll[${currentTarget}]
-				Ship.ModuleList_Weapon:DeactivateNotOn[${currentTarget}]
+				Ship.ModuleList_Weapon:DeactivateAllNotOn[${currentTarget}]
 				Ship.ModuleList_TrackingComputer:ActivateAll[${currentTarget}]
 			}
 			if ${Entity[${currentTarget}].Distance} <= ${Ship.ModuleList_TargetPainter.Range}
 			{
-				Ship.ModuleList_TargetPainter:Activate[${currentTarget}]
-				Ship.ModuleList_TargetPainter:DeactivateNotOn[${currentTarget}]
+				Ship.ModuleList_TargetPainter:ActivateAll[${currentTarget}]
+				Ship.ModuleList_TargetPainter:DeactivateAllNotOn[${currentTarget}]
 			}
 			; 'Effectiveness Falloff' is not read by ISXEVE, but 20km is a generally reasonable range to activate the module
 			if ${Entity[${currentTarget}].Distance} <= ${Math.Calc[${Ship.ModuleList_StasisGrap.Range} + 20000]}
 			{
-				Ship.ModuleList_StasisGrap:Activate[${currentTarget}]
-				Ship.ModuleList_StasisGrap:DeactivateNotOn[${currentTarget}]
+				Ship.ModuleList_StasisGrap:ActivateAll[${currentTarget}]
+				Ship.ModuleList_StasisGrap:DeactivateAllNotOn[${currentTarget}]
 			}
 			if ${Entity[${currentTarget}].Distance} <= ${Ship.ModuleList_StasisWeb.Range}
 			{
-				Ship.ModuleList_StasisWeb:Activate[${currentTarget}]
-				Ship.ModuleList_StasisWeb:DeactivateNotOn[${currentTarget}]
+				Ship.ModuleList_StasisWeb:ActivateAll[${currentTarget}]
+				Ship.ModuleList_StasisWeb:DeactivateAllNotOn[${currentTarget}]
 			}
 		}
 
