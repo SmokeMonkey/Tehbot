@@ -785,7 +785,7 @@ objectdef obj_Mission inherits obj_StateQueue
 							${Entity[${currentLootContainer}].Distance} < ${MyShip.MaxTargetRange} && \
 							(${Entity[${currentLootContainer}].GroupID} == GROUP_WRECK || ${Entity[${currentLootContainer}].GroupID} == GROUP_CARGOCONTAINER)
 						{
-							if ${Entity[${currentLootContainer}].IsLockedTarget} && ${Ship.ModuleList_TractorBeams.GetActiveOn[${currentLootContainer}]} < 1
+							if ${Entity[${currentLootContainer}].IsLockedTarget} && !${Ship.ModuleList_TractorBeams.IsActiveOn[${currentLootContainer}]}
 							{
 								Ship.ModuleList_TractorBeams:Activate[${currentLootContainer}]
 								Ship.ModuleList_TractorBeams:DeactivateNotOn[${currentLootContainer}]
