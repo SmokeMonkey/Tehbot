@@ -156,7 +156,7 @@ objectdef obj_AutoModule inherits obj_StateQueue
 		}
 		if ${Ship.ModuleList_Regen_Shield.ActiveCount} && (${MyShip.ShieldPct} > ${Config.ActiveShieldBoost} || ${MyShip.CapacitorPct} < ${Config.ActiveShieldCap}) && !${Config.ShieldBoost}
 		{
-			Ship.ModuleList_Regen_Shield:DeactivateCount[${Ship.ModuleList_Regen_Shield.ActiveCount}]
+			Ship.ModuleList_Regen_Shield:DeactivateAll
 		}
 		if (${MyShip.ShieldPct} > ${Config.ActiveShieldBoost} || ${MyShip.CapacitorPct} < ${Config.ActiveShieldCap}) && !${Config.ShieldBoost}
 		{
@@ -184,7 +184,7 @@ objectdef obj_AutoModule inherits obj_StateQueue
 
 		if ${Ship.ModuleList_Repair_Armor.ActiveCount} && (${MyShip.ArmorPct} > ${Config.ActiveArmorRepair} || ${MyShip.CapacitorPct} < ${Config.ActiveArmorCap}) && !${Config.ArmorRepair}
 		{
-			Ship.ModuleList_Repair_Armor:DeactivateCount[${Ship.ModuleList_Repair_Armor.ActiveCount}]
+			Ship.ModuleList_Repair_Armor:DeactivateAll
 		}
 
 		if ${Ship.ModuleList_ActiveResists.Count} && ${Config.ActiveHardeners}

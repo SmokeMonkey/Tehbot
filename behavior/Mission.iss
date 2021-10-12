@@ -2219,7 +2219,7 @@ objectdef obj_Mission inherits obj_StateQueue
 				}
 				if ${Ship.ModuleList_Regen_Shield.ActiveCount} && (${MyShip.ShieldPct} == 100 || ${MyShip.CapacitorPct} < ${AutoModule.Config.ActiveShieldCap}) && !${AutoModule.Config.ShieldBoost}
 				{
-					Ship.ModuleList_Regen_Shield:DeactivateCount[${Ship.ModuleList_Regen_Shield.ActiveCount}]
+					Ship.ModuleList_Regen_Shield:DeactivateAll
 				}
 				if ${Ship.ModuleList_Repair_Armor.InactiveCount} && ((${MyShip.ArmorPct} < 100 && ${MyShip.CapacitorPct} > ${AutoModule.Config.ActiveArmorCap}) || ${AutoModule.Config.ArmorRepair})
 				{
@@ -2227,7 +2227,7 @@ objectdef obj_Mission inherits obj_StateQueue
 				}
 				if ${Ship.ModuleList_Repair_Armor.ActiveCount} && (${MyShip.ArmorPct} == 100 || ${MyShip.CapacitorPct} < ${AutoModule.Config.ActiveArmorCap}) && !${AutoModule.Config.ArmorRepair}
 				{
-					Ship.ModuleList_Repair_Armor:DeactivateCount[${Ship.ModuleList_Repair_Armor.ActiveCount}]
+					Ship.ModuleList_Repair_Armor:DeactivateAll
 				}
 
 				if ${ammo.Length}
