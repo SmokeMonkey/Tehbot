@@ -80,7 +80,7 @@ objectdef obj_AutoThrust inherits obj_StateQueue
 		{
 			if ${Me.ToEntity.MaxVelocity} == 0
 			{
-				Ship.ModuleList_AB_MWD:Deactivate
+				Ship.ModuleList_AB_MWD:DeactivateAll
 				return FALSE
 			}
 			if ${Config.Approach}
@@ -88,7 +88,7 @@ objectdef obj_AutoThrust inherits obj_StateQueue
 				if ${Ship.ModuleList_AB_MWD.ActiveCount} && \
 					${MyShip.CapacitorPct} <= ${Config.Approach_Threshold}
 				{
-					Ship.ModuleList_AB_MWD:Deactivate
+					Ship.ModuleList_AB_MWD:DeactivateAll
 					return FALSE
 				}
 				if ${Me.ToEntity.Mode} == 1 && \
@@ -102,7 +102,7 @@ objectdef obj_AutoThrust inherits obj_StateQueue
 				if ${Ship.ModuleList_AB_MWD.ActiveCount} && \
 					${MyShip.CapacitorPct} <= ${Config.Orbit_Threshold}
 				{
-					Ship.ModuleList_AB_MWD:Deactivate
+					Ship.ModuleList_AB_MWD:DeactivateAll
 					return FALSE
 				}
 				if ${Me.ToEntity.Mode} == 4
@@ -115,7 +115,7 @@ objectdef obj_AutoThrust inherits obj_StateQueue
 				if ${Ship.ModuleList_AB_MWD.ActiveCount} && \
 					${MyShip.CapacitorPct} <= ${Config.KeepAtRange_Threshold}
 				{
-					Ship.ModuleList_AB_MWD:Deactivate
+					Ship.ModuleList_AB_MWD:DeactivateAll
 					return FALSE
 				}
 				if ${Me.ToEntity.Mode} == 1 && \
@@ -129,7 +129,7 @@ objectdef obj_AutoThrust inherits obj_StateQueue
 				if ${Ship.ModuleList_AB_MWD.ActiveCount} && \
 					${MyShip.CapacitorPct} <= ${Config.Velocity_Threshold}
 				{
-					Ship.ModuleList_AB_MWD:Deactivate
+					Ship.ModuleList_AB_MWD:DeactivateAll
 					return FALSE
 				}
 
@@ -143,7 +143,7 @@ objectdef obj_AutoThrust inherits obj_StateQueue
 			{
 				if ${Ship.ModuleList_AB_MWD.ActiveCount}
 				{
-					Ship.ModuleList_AB_MWD:Deactivate
+					Ship.ModuleList_AB_MWD:DeactivateAll
 				}
 				return FALSE
 			}

@@ -773,13 +773,14 @@ objectdef obj_Mission inherits obj_StateQueue
 							if ${Ship.ModuleList_Siege.ActiveCount}
 							{
 								; UI:Update["Mission", "Deactivate siege module due to approaching"]
-								Ship.ModuleList_Siege:Deactivate
+								Ship.ModuleList_Siege:DeactivateAll
 							}
 							Entity[${currentLootContainer}]:Approach[1000]
 							This:InsertState["PerformMission"]
 							approachTimer:Set[${Math.Calc[${LavishScript.RunningTime} + 10000]}]
 							return TRUE
 						}
+
 						if ${Ship.ModuleList_TractorBeams.Count} && \
 							${Entity[${currentLootContainer}].Distance} < ${Ship.ModuleList_TractorBeams.Range} && \
 							${Entity[${currentLootContainer}].Distance} < ${MyShip.MaxTargetRange} && \
@@ -795,8 +796,7 @@ objectdef obj_Mission inherits obj_StateQueue
 								{
 									Ship.ModuleList_TractorBeams:DeactivateNotOn[${currentLootContainer}]
 								}
-								This:InsertState["PerformMission"]
-								return TRUE
+								return FALSE
 							}
 							elseif !${Entity[${currentLootContainer}].IsLockedTarget} && !${Entity[${currentLootContainer}].BeingTargeted}
 							{
@@ -1068,7 +1068,7 @@ objectdef obj_Mission inherits obj_StateQueue
 			if ${Ship.ModuleList_Siege.ActiveCount}
 			{
 				; UI:Update["Mission", "Deactivate siege module due to no target"]
-				Ship.ModuleList_Siege:Deactivate
+				Ship.ModuleList_Siege:DeactivateAll
 			}
 			UI:Update["Mission", "Approaching distanced target: \ar${ActiveNPCs.TargetList.Get[1].Name}", "g"]
 			ActiveNPCs.TargetList.Get[1]:Approach
@@ -1082,24 +1082,20 @@ objectdef obj_Mission inherits obj_StateQueue
 			if ${Ship.ModuleList_Weapon.Range} > ${Entity[${currentTarget}].Distance} || !${Config.RangeLimit}
 			{
 				Ship.ModuleList_Weapon:ActivateAll[${currentTarget}]
-				Ship.ModuleList_Weapon:DeactivateAllNotOn[${currentTarget}]
 				Ship.ModuleList_TrackingComputer:ActivateAll[${currentTarget}]
 			}
 			if ${Entity[${currentTarget}].Distance} <= ${Ship.ModuleList_TargetPainter.Range}
 			{
 				Ship.ModuleList_TargetPainter:ActivateAll[${currentTarget}]
-				Ship.ModuleList_TargetPainter:DeactivateAllNotOn[${currentTarget}]
 			}
 			; 'Effectiveness Falloff' is not read by ISXEVE, but 20km is a generally reasonable range to activate the module
 			if ${Entity[${currentTarget}].Distance} <= ${Math.Calc[${Ship.ModuleList_StasisGrap.Range} + 20000]}
 			{
 				Ship.ModuleList_StasisGrap:ActivateAll[${currentTarget}]
-				Ship.ModuleList_StasisGrap:DeactivateAllNotOn[${currentTarget}]
 			}
 			if ${Entity[${currentTarget}].Distance} <= ${Ship.ModuleList_StasisWeb.Range}
 			{
 				Ship.ModuleList_StasisWeb:ActivateAll[${currentTarget}]
-				Ship.ModuleList_StasisWeb:DeactivateAllNotOn[${currentTarget}]
 			}
 		}
 
@@ -1122,7 +1118,7 @@ objectdef obj_Mission inherits obj_StateQueue
 				if ${Ship.ModuleList_Siege.ActiveCount}
 				{
 					; UI:Update["Mission", "Deactivate siege module due to approaching"]
-					Ship.ModuleList_Siege:Deactivate
+					Ship.ModuleList_Siege:DeactivateAll
 				}
 				NPCs.TargetList.Get[1]:Approach
 			}
@@ -1147,7 +1143,7 @@ objectdef obj_Mission inherits obj_StateQueue
 				if ${Ship.ModuleList_Siege.ActiveCount}
 				{
 					; UI:Update["Mission", "Deactivate siege module due to approaching"]
-					Ship.ModuleList_Siege:Deactivate
+					Ship.ModuleList_Siege:DeactivateAll
 				}
 				Entity[${missionAttackTarget}]:Approach
 			}
@@ -1238,7 +1234,7 @@ objectdef obj_Mission inherits obj_StateQueue
 			if ${Ship.ModuleList_Siege.ActiveCount}
 			{
 				; UI:Update["Mission", "Deactivate siege module due to approaching"]
-				Ship.ModuleList_Siege:Deactivate
+				Ship.ModuleList_Siege:DeactivateAll
 			}
 
 			if ${Lootables.TargetList.Used} && ${Config.SalvagePrefix.NotNULLOrEmpty}
@@ -1322,7 +1318,7 @@ objectdef obj_Mission inherits obj_StateQueue
 			if ${Ship.ModuleList_Siege.ActiveCount}
 			{
 				; UI:Update["Mission", "Deactivate siege module due to mission complete"]
-				Ship.ModuleList_Siege:Deactivate
+				Ship.ModuleList_Siege:DeactivateAll
 			}
 
 			if ${DroneControl.ActiveDrones.Used} > 0

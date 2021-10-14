@@ -28,7 +28,7 @@ objectdef obj_InstaWarp inherits obj_StateQueue
 
 		if ${Me.ToEntity.Mode} == 3 && ${InstaWarp_Cooldown} && ${Ship.ModuleList_AB_MWD.ActiveCount}
 		{
-			Ship.ModuleList_AB_MWD:Deactivate
+			Ship.ModuleList_AB_MWD:DeactivateAll
 			return FALSE
 		}
 

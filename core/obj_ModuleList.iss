@@ -33,28 +33,8 @@ objectdef obj_ModuleList
 		{
 			do
 			{
-				if !${ModuleIterator.Value.IsActive}
-				{
-					ModuleIterator.Value:Activate[${target}, ${deactivateAfterCyclePercent}]
-				}
-			}
-			while ${ModuleIterator:Next(exists)}
-		}
-	}
-
-	method Deactivate()
-	{
-		variable iterator ModuleIterator
-		Modules:GetIterator[ModuleIterator]
-		if ${ModuleIterator:First(exists)}
-		{
-			do
-			{
-				if ${ModuleIterator.Value.IsActive}
-				{
-					ModuleIterator.Value:Deactivate
-					return
-				}
+				; Will deactivate the module if the current target is not the same
+				ModuleIterator.Value:Activate[${target}, ${deactivateAfterCyclePercent}]
 			}
 			while ${ModuleIterator:Next(exists)}
 		}
@@ -95,24 +75,7 @@ objectdef obj_ModuleList
 		}
 	}
 
-	method DeactivateAllNotOn(int count, int64 target=-1)
-	{
-		variable iterator ModuleIterator
-		Modules:GetIterator[ModuleIterator]
-		if ${ModuleIterator:First(exists)}
-		{
-			do
-			{
-				if !${ModuleIterator.Value.IsActiveOn[${target}]} && ${ModuleIterator.Value.IsActive}
-				{
-					ModuleIterator.Value:Deactivate
-				}
-			}
-			while ${ModuleIterator:Next(exists)}
-		}
-	}
-
-	method DeactivateAllOn(int64 target=-1)
+	method DeactivateOn(int64 target=-1)
 	{
 		variable iterator ModuleIterator
 		Modules:GetIterator[ModuleIterator]
