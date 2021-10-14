@@ -7,7 +7,7 @@ objectdef obj_ModuleList
 		Modules:Insert[${ID}]
 	}
 
-	method Activate(int64 target=-1, int deactivateAfterCyclePercent=-1)
+	method ActivateOne(int64 target=-1, int deactivateAfterCyclePercent=-1)
 	{
 		variable iterator ModuleIterator
 		Modules:GetIterator[ModuleIterator]
@@ -57,7 +57,7 @@ objectdef obj_ModuleList
 		}
 	}
 
-	method DeactivateNotOn(int64 target=-1)
+	method DeactivateOneNotOn(int64 target=-1)
 	{
 		variable iterator ModuleIterator
 		Modules:GetIterator[ModuleIterator]
