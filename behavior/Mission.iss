@@ -790,11 +790,11 @@ objectdef obj_Mission inherits obj_StateQueue
 							{
 								if ${Ship.ModuleList_TractorBeams.InactiveCount} > 0
 								{
-									Ship.ModuleList_TractorBeams:Activate[${currentLootContainer}]
+									Ship.ModuleList_TractorBeams:ActivateOne[${currentLootContainer}]
 								}
 								else
 								{
-									Ship.ModuleList_TractorBeams:DeactivateNotOn[${currentLootContainer}]
+									Ship.ModuleList_TractorBeams:DeactivateOneNotOn[${currentLootContainer}]
 								}
 								return FALSE
 							}
@@ -1078,7 +1078,7 @@ objectdef obj_Mission inherits obj_StateQueue
 
 		if ${currentTarget} != 0 && ${Entity[${currentTarget}]} && !${Entity[${currentTarget}].IsMoribund}
 		{
-			Ship.ModuleList_Siege:Activate
+			Ship.ModuleList_Siege:ActivateOne
 			if ${Ship.ModuleList_Weapon.Range} > ${Entity[${currentTarget}].Distance} || !${Config.RangeLimit}
 			{
 				Ship.ModuleList_Weapon:ActivateAll[${currentTarget}]
