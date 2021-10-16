@@ -175,11 +175,13 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 					This:Deactivate
 					This:QueueState["LoadOptimalAmmo", 50, "Optimal Range Script"]
 				}
-				elseif ${MyShip.Module[${ModuleID}].Charge.Type.Find["Tracking Speed Script"]}
-				{
-					This:Deactivate
-					This:QueueState["UnloadAmmoToCargo", 50]
-				}
+				; BUG of ISXEVE: UnloadToCargo method is not working
+				; elseif ${MyShip.Module[${ModuleID}].Charge.Type.Find["Tracking Speed Script"]}
+				; {
+				; 	UI:Update["obj_Module", "Unloading Tracking Speed Script"]
+				; 	This:Deactivate
+				; 	This:QueueState["UnloadAmmoToCargo", 50]
+				; }
 			}
 		}
 		elseif ${Entity[${newTarget}].Distance} < ${Math.Calc[${OptimalRange} * 0.6]}
@@ -192,12 +194,13 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 					This:Deactivate
 					This:QueueState["LoadOptimalAmmo", 50, "Tracking Speed Script"]
 				}
-				elseif ${MyShip.Module[${ModuleID}].Charge.Type.Find["Optimal Range Script"]}
-				{
-					UI:Update["obj_Module", "Unloading Optimal Range Script"]
-					This:Deactivate
-					This:QueueState["UnloadAmmoToCargo", 50]
-				}
+				; BUG of ISXEVE: UnloadToCargo method is not working
+				; elseif ${MyShip.Module[${ModuleID}].Charge.Type.Find["Optimal Range Script"]}
+				; {
+				; 	UI:Update["obj_Module", "Unloading Optimal Range Script"]
+				; 	This:Deactivate
+				; 	This:QueueState["UnloadAmmoToCargo", 50]
+				; }
 			}
 		}
 	}
@@ -402,48 +405,50 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 		return TRUE
 	}
 
-	member:bool LoadOptimalAmmo(string AmmoName)
+	member:bool LoadOptimalAmmo(string optimalAmmo)
 	{
-		variable index:item AvailableAmmos
-		variable iterator AvailableAmmoIterator
+		variable index:item availableAmmos
+		variable iterator availableAmmoIterator
 
 		if ${MyShip.Module[${ModuleID}].IsReloading}
+		{
 			return FALSE
+		}
 
-		if ${AmmoName.Find[${MyShip.Module[${ModuleID}].Charge.Type}]}
+		if ${optimalAmmo.Equal[${MyShip.Module[${ModuleID}].Charge.Type}]}
 		{
 			return TRUE
 		}
 		else
 		{
-			MyShip.Module[${ModuleID}]:GetAvailableAmmo[AvailableAmmos]
+			MyShip.Module[${ModuleID}]:GetAvailableAmmo[availableAmmos]
 
-			if ${AvailableAmmos.Used} == 0
+			if ${availableAmmos.Used} == 0
 			{
-				UI:Update["obj_Module", "No Ammo available - dreadful - also, annoying", "o"]
+				; UI:Update["obj_Module", "No Ammo available - dreadful - also, annoying", "o"]
+				return FALSE
 			}
 
-			AvailableAmmos:GetIterator[AvailableAmmoIterator]
+			availableAmmos:GetIterator[availableAmmoIterator]
 
-			if ${AvailableAmmoIterator:First(exists)}
+			if ${availableAmmoIterator:First(exists)}
 			do
 			{
-				if ${AmmoName.Find[${AvailableAmmoIterator.Value.Name}](exists)}
+				if ${optimalAmmo.Equal[${availableAmmoIterator.Value.Name}]}
 				{
-					UI:Update["obj_Module", "Switching Ammo to \ay${AvailableAmmoIterator.Value.Name}"]
-
-					variable int ChargeAmountToLoad = ${MyShip.Cargo[${AmmoName}].Quantity}
+					UI:Update["obj_Module", "Switching Ammo to \ay${availableAmmoIterator.Value.Name}"]
+					variable int ChargeAmountToLoad = ${MyShip.Cargo[${optimalAmmo}].Quantity}
 
 					if ${ChargeAmountToLoad} > ${MyShip.Module[${ModuleID}].MaxCharges}
 					{
 						ChargeAmountToLoad:Set[${MyShip.Module[${ModuleID}].MaxCharges}]
 					}
 
-					MyShip.Module[${ModuleID}]:ChangeAmmo[${AvailableAmmoIterator.Value.ID}, ${ChargeAmountToLoad}]
+					MyShip.Module[${ModuleID}]:ChangeAmmo[${availableAmmoIterator.Value.ID}, ${ChargeAmountToLoad}]
 					return TRUE
 				}
 			}
-			while ${AvailableAmmoIterator:Next(exists)}
+			while ${availableAmmoIterator:Next(exists)}
 		}
 
 		return FALSE
@@ -452,14 +457,22 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 	member:bool UnloadAmmoToCargo()
 	{
 		if ${MyShip.Module[${ModuleID}].IsReloading}
+		{
 			return FALSE
+		}
+
 		if !${MyShip.Module[${ModuleID}].Charge(exists)}
 		{
 			return TRUE
 		}
-		UI:Update["obj_Module", "Unloading \ay${MyShip.Module[${ModuleID}].Charge.Type}"]
-		MyShip.Module[${ModuleID}]:UnloadToCargo
-		return TRUE
+		else
+		{
+			UI:Update["obj_Module", "Unloading \ay${MyShip.Module[${ModuleID}].Charge.Type}"]
+			MyShip.Module[${ModuleID}]:UnloadToCargo
+			return TRUE
+		}
+
+		return FALSE
 	}
 
 	member:bool ActivateOn(int64 newTarget)
