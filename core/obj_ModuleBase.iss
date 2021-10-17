@@ -38,9 +38,11 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 
 	member:bool IsActive()
 	{
-		if ${MyShip.Module[${ModuleID}].IsActive}
+		; ISXEVE API is not reliable
+		; Don't simplify this for Lavish Script has bug
+		if ${MyShip.Module[${ModuleID}].IsActive} || ${Activated}
 			return TRUE
-		return ${Activated}
+		return FALSE
 	}
 
 	member:bool IsDeactivating()
@@ -50,7 +52,18 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 
 	member:bool IsActiveOn(int64 checkTarget)
 	{
-		if (${This.IsActive} && ${This.CurrentTarget.Equal[${checkTarget}]})
+		variable bool isTargetMatch = FALSE
+		if (${CurrentTarget.Equal[0]} || ${CurrentTarget.Equal[-1]}) && (${checkTarget.Equal[0]} || ${checkTarget.Equal[-1]})
+		{
+			isTargetMatch:Set[TRUE]
+		}
+		elseif ${CurrentTarget.Equal[${checkTarget}]}
+		{
+			isTargetMatch:Set[TRUE]
+		}
+
+		; Don't simplify this for Lavish Script has bug
+		if ${This.IsActive} && ${isTargetMatch}
 		{
 			return TRUE
 		}
@@ -62,7 +75,9 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 		if !${Deactivating}
 		{
 			MyShip.Module[${ModuleID}]:Deactivate
+			Activated:Set[FALSE]
 			Deactivating:Set[TRUE]
+			CurrentTarget:Set[-1]
 			This:Clear
 			This:QueueState["WaitTillInactive", 50, 0]
 		}
@@ -360,13 +375,13 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 		}
 
         This:QueueState["ActivateOn", 50, "${newTarget}"]
-        This:QueueState["WaitTillActive", 50, 20]
 
-        if ${deactivateAfterCyclePercent} != -1
+        if ${deactivateAfterCyclePercent} > 0
         {
             This:QueueState["DeactivateAfterCyclePercent", 50, ${deactivateAfterCyclePercent}]
         }
 
+		; Need this state to catch target is destruction and reset CurrentTarget
         This:QueueState["WaitTillInactive", 50, -1]
     }
 
@@ -425,7 +440,7 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 
 			if ${availableAmmos.Used} == 0
 			{
-				; UI:Update["obj_Module", "No Ammo available - dreadful - also, annoying", "o"]
+				UI:Update["obj_Module", "No Ammo available - dreadful - also, annoying", "o"]
 				return FALSE
 			}
 
@@ -477,37 +492,36 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 
 	member:bool ActivateOn(int64 newTarget)
 	{
-		if ${newTarget} == -1 || ${newTarget} == 0
+		if ${newTarget.Equal[-1]} || ${newTarget.Equal[0]}
 		{
+			if ${MyShip.Module[${ModuleID}].IsActive} || \
+			(${Me.ToEntity.Mode} == 3 && ${MyShip.Module[${ModuleID}].ToItem.GroupID} == GROUP_AFTERBURNER)
+			{
+				return TRUE
+			}
 			MyShip.Module[${ModuleID}]:Activate
+			CurrentTarget:Set[-1]
+			Activated:Set[TRUE]
+			return FALSE
+		}
+		elseif ${Entity[${newTarget}](exists)} && ${Entity[${newTarget}].IsLockedTarget}
+		{
+			if ${MyShip.Module[${ModuleID}].IsActive}
+			{
+				return TRUE
+			}
+			MyShip.Module[${ModuleID}]:Activate[${newTarget}]
+			CurrentTarget:Set[${newTarget}]
+			Activated:Set[TRUE]
+			return FALSE
 		}
 		else
 		{
-			if ${Entity[${newTarget}](exists)} && ${Entity[${newTarget}].IsLockedTarget}
-			{
-				MyShip.Module[${ModuleID}]:Activate[${newTarget}]
-			}
-			else
-			{
-				Activated:Set[FALSE]
-				CurrentTarget:Set[-1]
-				This:Clear
-				return TRUE
-			}
+			Activated:Set[FALSE]
+			CurrentTarget:Set[-1]
+			This:Clear
+			return TRUE
 		}
-		Activated:Set[TRUE]
-		CurrentTarget:Set[${newTarget}]
-		return TRUE
-	}
-
-	member:bool WaitTillActive(int countdown)
-	{
-		if ${countdown} > 0
-		{
-			This:SetStateArgs[${Math.Calc[${countdown}-1]}]
-			return ${MyShip.Module[${ModuleID}].IsActive}
-		}
-		return TRUE
 	}
 
 	member:bool DeactivateAfterCyclePercent(int percent)
