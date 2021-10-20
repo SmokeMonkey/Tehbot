@@ -38,9 +38,11 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 
 	member:bool IsActive()
 	{
-		if ${MyShip.Module[${ModuleID}].IsActive}
+		; ISXEVE API is not reliable
+		; Don't simplify this for Lavish Script has bug
+		if ${MyShip.Module[${ModuleID}].IsActive} || ${Activated}
 			return TRUE
-		return ${Activated}
+		return FALSE
 	}
 
 	member:bool IsDeactivating()
@@ -50,7 +52,18 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 
 	member:bool IsActiveOn(int64 checkTarget)
 	{
-		if (${This.IsActive} && ${This.CurrentTarget.Equal[${checkTarget}]})
+		variable bool isTargetMatch = FALSE
+		if (${CurrentTarget.Equal[0]} || ${CurrentTarget.Equal[-1]}) && (${checkTarget.Equal[0]} || ${checkTarget.Equal[-1]})
+		{
+			isTargetMatch:Set[TRUE]
+		}
+		elseif ${CurrentTarget.Equal[${checkTarget}]}
+		{
+			isTargetMatch:Set[TRUE]
+		}
+
+		; Don't simplify this for Lavish Script has bug
+		if ${This.IsActive} && ${isTargetMatch}
 		{
 			return TRUE
 		}
@@ -207,9 +220,14 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 
     method Activate(int64 newTarget=-1, int deactivateAfterCyclePercent=-1)
     {
-        if ${newTarget} != ${CurrentTarget} && ${This.IsActive} && \
-		${MyShip.Module[${ModuleID}].ToItem.GroupID} != GROUP_TRACKINGCOMPUTER && \
-		${MyShip.Module[${ModuleID}].ToItem.GroupID} != GROUP_MISSILEGUIDANCECOMPUTER
+        if ${MyShip.Module[${ModuleID}].IsReloading}
+		{
+			return
+		}
+
+        if ${This.IsActive} && !${This.IsActiveOn[${newTarget}]} && \
+			${MyShip.Module[${ModuleID}].ToItem.GroupID} != GROUP_TRACKINGCOMPUTER && \
+			${MyShip.Module[${ModuleID}].ToItem.GroupID} != GROUP_MISSILEGUIDANCECOMPUTER
         {
             This:Deactivate
         }
@@ -253,8 +271,7 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 					This:QueueState["LoadOptimalAmmo", 50, "Baryon Exotic Plasma L"]
 				}
 			}
-
-			if ${MyShip.Module[${ModuleID}].ToItem.GroupID} == GROUP_PROJECTILEWEAPON
+			elseif ${MyShip.Module[${ModuleID}].ToItem.GroupID} == GROUP_PROJECTILEWEAPON
 			{
 				; This expression returns TRUE when the Quantity is NULL
 				if ${MyShip.Cargo[${shortRangeAmmo}].Quantity} == 0
@@ -269,8 +286,7 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 
 				This:ChooseAndLoadTurretAmmo[${shortRangeAmmo}, ${longRangeAmmo}, ${newTarget}, 45000]
 			}
-
-			if ${MyShip.Module[${ModuleID}].ToItem.GroupID} == GROUP_MISSILELAUNCHERTORPEDO
+			elseif ${MyShip.Module[${ModuleID}].ToItem.GroupID} == GROUP_MISSILELAUNCHERTORPEDO
 			{
 				if ${MyShip.Cargo[${shortRangeAmmo}].Quantity} == 0
 				{
@@ -322,8 +338,7 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 					This:QueueState["LoadOptimalAmmo", 50, ${longRangeAmmo}]
 				}
 			}
-
-			if ${MyShip.Module[${ModuleID}].ToItem.GroupID} == GROUP_ENERGYWEAPON
+			elseif ${MyShip.Module[${ModuleID}].ToItem.GroupID} == GROUP_ENERGYWEAPON
 			{
 				if ${MyShip.Cargo[${shortRangeAmmo}].Quantity} == 0
 				{
@@ -337,8 +352,7 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 
 				This:ChooseAndLoadTurretAmmo[${shortRangeAmmo}, ${longRangeAmmo}, ${newTarget}, 49000]
 			}
-
-			if ${MyShip.Module[${ModuleID}].ToItem.GroupID} == GROUP_TRACKINGCOMPUTER
+			elseif ${MyShip.Module[${ModuleID}].ToItem.GroupID} == GROUP_TRACKINGCOMPUTER
 			{
 				This:ChooseAndLoadTrackingComputerScript[${newTarget}, ${Ship.ModuleList_Weapon.OptimalRange.Int}]
 			}
@@ -354,19 +368,15 @@ objectdef obj_ModuleBase inherits obj_StateQueue
            return
         }
 
-		if ${MyShip.Module[${ModuleID}].IsReloading}
-		{
-			return
-		}
-
         This:QueueState["ActivateOn", 50, "${newTarget}"]
         This:QueueState["WaitTillActive", 50, 20]
 
-        if ${deactivateAfterCyclePercent} != -1
+        if ${deactivateAfterCyclePercent} > 0
         {
             This:QueueState["DeactivateAfterCyclePercent", 50, ${deactivateAfterCyclePercent}]
         }
 
+		; Need this state to catch target destruction and reset CurrentTarget
         This:QueueState["WaitTillInactive", 50, -1]
     }
 
@@ -405,27 +415,29 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 		return TRUE
 	}
 
-	member:bool LoadOptimalAmmo(string optimalAmmo)
+	member:bool LoadOptimalAmmo(string ammo)
 	{
-		variable index:item availableAmmos
-		variable iterator availableAmmoIterator
-
 		if ${MyShip.Module[${ModuleID}].IsReloading}
 		{
 			return FALSE
 		}
 
-		if ${optimalAmmo.Equal[${MyShip.Module[${ModuleID}].Charge.Type}]}
+		if ${ammo.Equal[${MyShip.Module[${ModuleID}].Charge.Type}]}
 		{
 			return TRUE
 		}
 		else
 		{
+			variable index:item availableAmmos
+			variable iterator availableAmmoIterator
 			MyShip.Module[${ModuleID}]:GetAvailableAmmo[availableAmmos]
 
 			if ${availableAmmos.Used} == 0
 			{
-				; UI:Update["obj_Module", "No Ammo available - dreadful - also, annoying", "o"]
+				if ${Me.InSpace}
+				{
+					UI:Update["obj_Module", "No Ammo available - dreadful - also, annoying", "o"]
+				}
 				return FALSE
 			}
 
@@ -434,10 +446,10 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 			if ${availableAmmoIterator:First(exists)}
 			do
 			{
-				if ${optimalAmmo.Equal[${availableAmmoIterator.Value.Name}]}
+				if ${ammo.Equal[${availableAmmoIterator.Value.Name}]}
 				{
 					UI:Update["obj_Module", "Switching Ammo to \ay${availableAmmoIterator.Value.Name}"]
-					variable int ChargeAmountToLoad = ${MyShip.Cargo[${optimalAmmo}].Quantity}
+					variable int ChargeAmountToLoad = ${MyShip.Cargo[${ammo}].Quantity}
 
 					if ${ChargeAmountToLoad} > ${MyShip.Module[${ModuleID}].MaxCharges}
 					{
@@ -477,7 +489,7 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 
 	member:bool ActivateOn(int64 newTarget)
 	{
-		if ${newTarget} == -1 || ${newTarget} == 0
+		if ${newTarget.Equal[-1]} || ${newTarget.Equal[0]}
 		{
 			if ${MyShip.Module[${ModuleID}].IsActive}
 			{
@@ -490,31 +502,36 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 				return TRUE
 			}
 			MyShip.Module[${ModuleID}]:Activate
+			CurrentTarget:Set[-1]
+			Activated:Set[TRUE]
+			return TRUE
+		}
+		elseif ${Entity[${newTarget}](exists)} && ${Entity[${newTarget}].IsLockedTarget}
+		{
+			; Strict isActiveOn
+			; if ${MyShip.Module[${ModuleID}].IsActive} && ${MyShip.Module[${ModuleID}].TargetID.Equal[${newTarget}]}
+			; {
+			; 	return TRUE
+			; }
+			MyShip.Module[${ModuleID}]:Activate[${newTarget}]
+			CurrentTarget:Set[${newTarget}]
+			Activated:Set[TRUE]
+			return FALSE
 		}
 		else
 		{
-			if ${Entity[${newTarget}](exists)} && ${Entity[${newTarget}].IsLockedTarget}
-			{
-				MyShip.Module[${ModuleID}]:Activate[${newTarget}]
-			}
-			else
-			{
-				Activated:Set[FALSE]
-				CurrentTarget:Set[-1]
-				This:Clear
-				return TRUE
-			}
+			Activated:Set[FALSE]
+			CurrentTarget:Set[-1]
+			This:Clear
+			return TRUE
 		}
-		Activated:Set[TRUE]
-		CurrentTarget:Set[${newTarget}]
-		return TRUE
 	}
 
 	member:bool WaitTillActive(int countdown)
 	{
 		if ${countdown} > 0
 		{
-			This:SetStateArgs[${Math.Calc[${countdown}-1]}]
+			This:SetStateArgs[${Math.Calc[${countdown} - 1]}]
 			return ${MyShip.Module[${ModuleID}].IsActive}
 		}
 		return TRUE
