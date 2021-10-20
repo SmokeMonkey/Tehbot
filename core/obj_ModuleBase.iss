@@ -77,7 +77,7 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 			MyShip.Module[${ModuleID}]:Deactivate
 			Deactivating:Set[TRUE]
 			This:Clear
-			This:QueueState["WaitTillInactive", 50, 0]
+			This:InsertState["WaitTillInactive", 50, 0]
 		}
 	}
 
@@ -220,7 +220,7 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 
     method Activate(int64 newTarget=-1, int deactivateAfterCyclePercent=-1)
     {
-        if ${MyShip.Module[${ModuleID}].IsReloading}
+        if ${MyShip.Module[${ModuleID}].IsReloading} || ${Deactivating}
 		{
 			return
 		}
@@ -369,7 +369,6 @@ objectdef obj_ModuleBase inherits obj_StateQueue
         }
 
         This:QueueState["ActivateOn", 50, "${newTarget}"]
-        This:QueueState["WaitTillActive", 50, 20]
 
         if ${deactivateAfterCyclePercent} > 0
         {
@@ -457,6 +456,7 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 					}
 
 					MyShip.Module[${ModuleID}]:ChangeAmmo[${availableAmmoIterator.Value.ID}, ${ChargeAmountToLoad}]
+					This:InsertState["WaitTillSwitchAmmo", 50, "\"${ammo}\", 20"]
 					return TRUE
 				}
 			}
@@ -504,18 +504,20 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 			MyShip.Module[${ModuleID}]:Activate
 			CurrentTarget:Set[-1]
 			Activated:Set[TRUE]
+			This:InsertState["WaitTillActive", 50, 20]
 			return TRUE
 		}
 		elseif ${Entity[${newTarget}](exists)} && ${Entity[${newTarget}].IsLockedTarget}
 		{
 			; Strict isActiveOn
-			; if ${MyShip.Module[${ModuleID}].IsActive} && ${MyShip.Module[${ModuleID}].TargetID.Equal[${newTarget}]}
-			; {
-			; 	return TRUE
-			; }
+			if ${MyShip.Module[${ModuleID}].IsActive} && ${MyShip.Module[${ModuleID}].TargetID.Equal[${newTarget}]}
+			{
+				return TRUE
+			}
 			MyShip.Module[${ModuleID}]:Activate[${newTarget}]
 			CurrentTarget:Set[${newTarget}]
 			Activated:Set[TRUE]
+			This:InsertState["WaitTillActive", 50, 20]
 			return FALSE
 		}
 		else
@@ -525,6 +527,17 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 			This:Clear
 			return TRUE
 		}
+	}
+
+	; TODO: Add Wait till unload ammo
+	member:bool WaitTillSwitchAmmo(string ammo, int countdown)
+	{
+		if ${countdown} > 0
+		{
+			This:SetStateArgs["\"${ammo}\", ${Math.Calc[${countdown} - 1]}"]
+			return ${ammo.Equal[${MyShip.Module[${ModuleID}].Charge.Type}]}
+		}
+		return TRUE
 	}
 
 	member:bool WaitTillActive(int countdown)
@@ -578,6 +591,7 @@ objectdef obj_ModuleBase inherits obj_StateQueue
 				return FALSE
 			}
 		}
+
 		Activated:Set[FALSE]
 		Deactivating:Set[FALSE]
 		CurrentTarget:Set[-1]
