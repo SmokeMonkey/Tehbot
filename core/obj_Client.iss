@@ -185,8 +185,8 @@ objectdef obj_Client
 		}
 		if ${MyShip.HasOreHold}
 		{
-			if ${EVEWindow[Inventory].ChildWindow[${MyShip.ID}, ShipOreHold].UsedCapacity} == -1 || \
-				${EVEWindow[Inventory].ChildWindow[${MyShip.ID}, ShipOreHold].Capacity} <= 0
+			if ${EVEWindow[Inventory].ChildWindow[${MyShip.ID}, ShipGeneralMiningHold].UsedCapacity} == -1 || \
+				${EVEWindow[Inventory].ChildWindow[${MyShip.ID}, ShipGeneralMiningHold].Capacity} <= 0
 			{
 				if !${cycleCargoHold}
 				{
@@ -197,7 +197,7 @@ objectdef obj_Client
 				else
 				{
 					Logger:Log["Client", "Ore hold information invalid, activating", "g"]
-					EVEWindow[Inventory].ChildWindow[${MyShip.ID}, ShipOreHold]:MakeActive
+					EVEWindow[Inventory].ChildWindow[${MyShip.ID}, ShipGeneralMiningHold]:MakeActive
 					cycleCargoHold:Set[TRUE]
 					return FALSE
 				}
